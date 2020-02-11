@@ -1,0 +1,360 @@
+---
+title: "Assignment4"
+author: "Liam McCallum"
+date: "4/17/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+###3.6 Exercise
+
+```{r}
+
+fix(Boston)
+names(Boston)
+lm.fit=lm(medv~lstat)
+
+lm.fit=lm(medv~lstat , data=Boston)
+attach(Boston)
+lm.fit=lm(medv~lstat)
+
+lm.fit
+lm(formula = medv ~ lstat)
+summary (lm.fit)
+names(lm.fit)
+coef(lm.fit)
+confint (lm.fit)
+predict (lm.fit ,data.frame(lstat=c(5,10 ,15)),interval ="confidence")
+
+plot(lstat ,medv) +
+abline(lm.fit) +
+
+abline (lm.fit ,lwd =3) +
+abline (lm.fit ,lwd=3,col ="red")
+plot(lstat ,medv ,col="red")
+plot(lstat ,medv ,pch =20)
+plot(lstat ,medv ,pch ="+")
+plot(1:20,1:20,pch =1:20)
+
+par(mfrow=c(2,2))
+plot(lm.fit)
+
+plot(predict (lm.fit), residuals (lm.fit))
+plot(predict (lm.fit), rstudent (lm.fit))
+plot(hatvalues (lm.fit))
+which.max(hatvalues (lm.fit))
+
+lm.fit=lm(medv~lstat+age ,data=Boston)
+summary (lm.fit)
+
+lm.fit=lm(medv~.,data=Boston)
+summary (lm.fit)
+
+library(car)
+vif(lm.fit)
+
+lm.fit1=lm(medv~.-age ,data=Boston )
+summary (lm.fit1)
+lm.fit1=update(lm.fit ,~.-age)
+
+summary (lm(medv~lstat*age ,data=Boston))
+lm.fit2=lm(medv~lstat+I(lstat^2))
+summary (lm.fit2)
+
+lm.fit=lm(medv~lstat)
+anova(lm.fit ,lm.fit2)
+
+par(mfrow=c(2,2))
+plot(lm.fit2)
+lm.fit5=lm(medv~poly(lstat ,5))
+summary (lm.fit5)
+summary (lm(medv~log(rm),data=Boston))
+
+names(Carseats)
+lm.fit=lm(Sales~.+Income :Advertising +Price:Age ,data=Carseats )
+summary (lm.fit)
+attach(Carseats)
+contrasts (ShelveLoc)
+
+LoadLibraries= function (){
+  library(ISLR)
+  library(MASS)
+  print("The libraries have been loaded .")
+}
+
+LoadLibraries()
+```
+
+### Chapter 3: Questions
+
+#1.  The null hypotheses associated with table 3.4 are that advertising budgets of “TV”, “radio” or “newspaper” do not have an effect on sales. The corresponding p-values are highly significant for “TV” and “radio” and not significant for “newspaper”; so we reject both H1 and H2 and we do not reject H3. We may conclude that newspaper advertising budget do not affect sales.
+
+#2.  The KNN classifier is typically used to solve classification problems by identifying the neighborhood of X0 and then estimating the conditional probability for class j as the fraction of points in the neighborhood whose response values equal j. The KNN regression method is used to solve regression problems by again identifying the neighborhood of X0 and then estimating f(X0) as the average of all the training responses in the neighborhood.
+
+#3.  
+  a.  Male Formula = 50+20GPA+0.07IQ+0.01GPA×IQ
+      Female Formula = 85+10GPA+0.07IQ+0.01GPA×IQ
+      
+  Because the average for males is higher than for females, number 3 is correct.
+  
+  b.  $137100
+  c.  False. 
+
+#8.
+  a.
+    i. 
+```{r}
+data(Auto)
+fit <- lm(mpg ~ horsepower, data = Auto)
+summary(fit)
+```
+      The p-value corresponding to the F-statistic is 7.03198910^{-81}, this indicates a clear evidence of a relationship between “mpg” and “horsepower”.   
+    ii.   To calculate the residual error relative to the response we use the mean of the response and the RSE. The mean of mpg is 23.4459184. The RSE of the lm.fit was 4.9057569 which indicates a percentage error of 20.9237141%. We may also note that as the R2 is equal to 0.6059483, almost 60.5948258% of the variability in “mpg” can be explained using “horsepower”.
+    iii.  As the coeficient of “horsepower” is negative, the relationship is also negative.
+    iv.
+```{r}
+predict(fit, data.frame(horsepower = 98), interval = "confidence")
+```
+  b.  
+```{r}
+plot(Auto$horsepower, Auto$mpg, main = "Scatterplot of mpg vs. horsepower", xlab = "horsepower", ylab = "mpg", col = "blue")+
+abline(fit, col = "red")
+```
+  c.
+```{r}
+par(mfrow = c(2, 2))
+plot(fit)
+```
+
+#9.
+  a.
+```{r}
+pairs(Auto)
+``` 
+  b. 
+```{r}
+names(Auto)
+cor(Auto[1:8])
+```
+  c.
+    i.
+```{r}
+fit2 <- lm(mpg ~ . - name, data = Auto)
+summary(fit2)
+```
+          The p-value corresponding to the F-statistic is 2.037105910^{-139}, this indicates a clear evidence of a relationship between “mpg” and the other predictors.
+    ii.   We can answer this question by checking the p-values associated with each predictor’s t-statistic. We may conclude that all predictors are statistically significant except “cylinders”, “horsepower” and “acceleration”.
+    iii.   The coefficient ot the “year” variable suggests that the average effect of an increase of 1 year is an increase of 0.7507727 in “mpg”. In other words, cars become more fuel efficient every year by almost 1 mpg / year.
+    
+  d.
+```{r}
+par(mfrow = c(2, 2))
+plot(fit2)
+```
+  e.
+```{r}
+fit3 <- lm(mpg ~ cylinders * displacement+displacement * weight, data = Auto[, 1:8])
+summary(fit3)
+```
+  f. 
+```{r}
+par(mfrow = c(2, 2))
+plot(log(Auto$horsepower), Auto$mpg)
+plot(sqrt(Auto$horsepower), Auto$mpg)
+plot((Auto$horsepower)^2, Auto$mpg)
+```
+
+#10.
+  a.  
+```{r}
+data(Carseats)
+fit3 <- lm(Sales ~ Price + Urban + US, data = Carseats)
+summary(fit3)
+```
+  b.  The coefficient of the “Price” variable may be interpreted by saying that the average effect of a price increase of 1 dollar is a decrease of 54.4588492 units in sales all other predictors remaining fixed. The coefficient of the “Urban” variable may be interpreted by saying that on average the unit sales in urban location are 21.9161508 units less than in rural location all other predictors remaining fixed. 
+  c. Sales = 13.0434689+(−0.0544588)×Price+(−0.0219162)×Urban+(1.2005727)×US+E
+  d. We can reject the null hypothesis for the “Price” and “US” variables.
+  e. 
+```{r}
+fit4 <- lm(Sales ~ Price + US, data = Carseats)
+summary(fit4)
+```
+  f. The R^2 for the smaller model is marginally better than for the bigger model. About 23.9262888% of the variability is explained by the model.
+  g. 
+```{r}
+confint(fit4)
+```
+  h.
+```{r}
+par(mfrow = c(2, 2))
+plot(fit4)
+```
+
+#13.
+  a.
+```{r}
+set.seed(1)
+x <- rnorm(100)
+```
+  b.
+```{r}
+eps <- rnorm(100, sd = sqrt(0.25))
+```
+  c.
+```{r}
+y <- -1 + 0.5 * x + eps
+length(y)
+```
+  d.
+```{r}
+plot(x, y)
+```
+  e.
+```{r}
+fit9 <- lm(y ~ x)
+summary(fit9)
+```
+  f.
+```{r}
+plot(x, y) +
+abline(fit9, col = "red") +
+abline(-1, 0.5, col = "blue")
+```
+  g.
+```{r}
+fit10 <- lm(y ~ x + I(x^2))
+summary(fit10)
+```
+  h.
+```{r}
+set.seed(1)
+eps <- rnorm(100, sd = 0.125)
+x <- rnorm(100)
+y <- -1 + 0.5 * x + eps
+plot(x, y) +
+abline(fit11, col = "red") +
+abline(-1, 0.5, col = "blue")
+fit11 <- lm(y ~ x)
+summary(fit11)
+```
+  i.
+```{r}
+set.seed(1)
+eps <- rnorm(100, sd = 0.5)
+x <- rnorm(100)
+y <- -1 + 0.5 * x + eps
+plot(x, y) +
+abline(fit12, col = "red") +
+abline(-1, 0.5, col = "blue")
+fit12 <- lm(y ~ x)
+summary(fit12)
+```
+  j.
+```{r}
+confint(fit9)
+confint(fit11)
+confint(fit12)
+```
+All intervals seem to be centered on approximately 0.5. As the noise increases, the confidence intervals widen. With less noise, there is more predictability in the data set.
+
+###Chapter 4
+```{r}
+names(Smarket)
+dim(Smarket )
+summary(Smarket)
+pairs(Smarket)
+cor(Smarket [,-9])
+attach(Smarket)
+plot(Volume)
+glm.fits=glm(Direction~Lag1+Lag2+Lag3+Lag4+Lag5+Volume ,
+data=Smarket ,family=binomial )
+summary (glm.fits)
+coef(glm.fits)
+summary (glm.fits)$coef
+summary (glm.fits)$coef[,4]
+glm.probs=predict (glm.fits,type="response")
+glm.probs [1:10]
+contrasts (Direction )
+glm.pred=rep("Down",1250)
+glm.pred[glm.probs >.5]=" Up"
+table(glm.pred ,Direction )
+(507+145) /1250
+mean(glm.pred==Direction)
+train=(Year <2005)
+Smarket.2005 = Smarket [!train ,]
+dim(Smarket.2005)
+Direction.2005 = Direction [!train]
+glm.fits=glm(Direction~Lag1+Lag2+Lag3+Lag4+Lag5+Volume ,
+data=Smarket ,family=binomial ,subset=train)
+glm.probs=predict (glm.fits,Smarket.2005, type="response")
+glm.pred=rep("Down",252)
+glm.pred[glm.probs >.5]=" Up"
+table(glm.pred ,Direction.2005)
+mean(glm.pred==Direction.2005)
+mean(glm.pred!=Direction.2005)
+glm.fits=glm(Direction~Lag1+Lag2 ,data=Smarket ,family=binomial ,subset=train)
+glm.probs=predict (glm.fits,Smarket.2005, type="response")
+glm.pred=rep("Down",252)
+glm.pred[glm.probs >.5]=" Up"
+table(glm.pred ,Direction.2005)
+mean(glm.pred==Direction.2005)
+predict (glm.fits,newdata =data.frame(Lag1=c(1.2 ,1.5),
+Lag2=c(1.1,-0.8) ),type="response")
+lda.fit=lda(Direction~Lag1+Lag2 ,data=Smarket ,subset=train)
+lda.fit
+plot(lda.fit)
+lda.pred=predict (lda.fit , Smarket.2005)
+names(lda.pred)
+lda.class=lda.pred$class
+table(lda.class ,Direction.2005)
+mean(lda.class==Direction.2005)
+sum(lda.pred$posterior[,1]>=.5)
+sum(lda.pred$posterior[,1]<.5)
+lda.pred$posterior [1:20,1]
+lda.class [1:20]
+sum(lda.pred$posterior[,1]>.9)
+qda.fit=qda(Direction~Lag1+Lag2 ,data=Smarket ,subset=train)
+qda.fit
+qda.class=predict (qda.fit ,Smarket.2005) $class
+table(qda.class ,Direction.2005)
+mean(qda.class==Direction.2005)
+library(class)
+train.X=cbind(Lag1 ,Lag2)[train ,]
+test.X=cbind(Lag1 ,Lag2)[!train ,]
+train.Direction =Direction [train]
+set.seed(1)
+knn.pred=knn(train.X,test.X,train.Direction ,k=1)
+table(knn.pred ,Direction.2005)
+(83+43) /252
+knn.pred=knn(train.X,test.X,train.Direction ,k=3)
+table(knn.pred ,Direction.2005)
+mean(knn.pred==Direction.2005)
+dim(Caravan)
+attach(Caravan)
+summary(Purchase)
+standardized.X= scale(Caravan [,-86])
+var(Caravan [ ,1])
+var(Caravan [ ,2])
+var(standardized.X[,1])
+var(standardized.X[,2])
+test=1:1000
+train.X= standardized.X[-test ,]
+test.X= standardized.X[test ,]
+train.Y=Purchase [-test]
+test.Y=Purchase [test]
+set.seed(1)
+knn.pred=knn(train.X,test.X,train.Y,k=1)
+mean(test.Y!=knn.pred)
+mean(test.Y!="No")
+table(knn.pred ,test.Y)
+knn.pred=knn(train.X,test.X,train.Y,k=3)
+table(knn.pred ,test.Y)
+knn.pred=knn(train.X,test.X,train.Y,k=5)
+table(knn.pred ,test.Y)
+```
+
+4.  
+  a.

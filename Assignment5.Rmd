@@ -1,0 +1,269 @@
+---
+title: "Assignment5"
+author: "Liam McCallum"
+date: "5/10/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Chapter 8  
+```{r}
+library(tree)
+library(ISLR)
+attach(Carseats)
+High=ifelse(Sales <=8,"No","Yes")
+
+Carseats =data.frame(Carseats ,High)
+tree.carseats =tree(High~.-Sales , Carseats)
+summary(tree.carseats)
+plot(tree.carseats)
+text(tree.carseats,pretty =0)
+tree.carseats
+
+set.seed(2)
+train=sample (1: nrow(Carseats ), 200)
+Carseats.test=Carseats [-train ,]
+High.test=High[-train]
+tree.carseats =tree(High~.-Sales , Carseats ,subset=train)
+tree.pred=predict(tree.carseats ,Carseats.test ,type="class")
+table(tree.pred ,High.test)
+ (86+57) /200
+
+set.seed(3)
+cv.carseats =cv.tree(tree.carseats ,FUN=prune.misclass )
+names(cv.carseats)
+cv.carseats
+par(mfrow=c(1,2))
+
+plot(cv.carseats$size ,cv.carseats$dev ,type="b")
+plot(cv.carseats$k ,cv.carseats$dev ,type="b")
+
+prune.carseats =prune.misclass (tree.carseats ,best=9)
+plot(prune.carseats )
+text(prune.carseats ,pretty =0)
+
+tree.pred=predict(prune.carseats ,Carseats.test , type="class")
+table(tree.pred ,High.test)
+
+prune.carseats =prune.misclass (tree.carseats ,best=15)
+plot(prune.carseats )
+text(prune.carseats ,pretty =0)
+tree.pred=predict(prune.carseats ,Carseats.test , type="class")
+table(tree.pred ,High.test)
+
+library(MASS)
+set.seed(1)
+train = sample (1:nrow(Boston), nrow(Boston)/2)
+tree.boston=tree(medv~.,Boston , subset=train)
+summary(tree.boston)
+
+plot(tree.boston)
+text(tree.boston , pretty =0)
+
+cv.boston=cv.tree(tree.boston)
+plot(cv.boston$size ,cv.boston$dev ,type="b")
+
+prune.boston=prune.tree(tree.boston ,best=5)
+plot(prune.boston)
+text(prune.boston , pretty =0)
+
+yhat=predict (tree.boston ,newdata=Boston[-train ,])
+boston.test=Boston[-train ,"medv"]
+plot(yhat ,boston.test)
+abline (0,1)
+mean((yhat -boston.test)^2)
+
+library(randomForest)
+set.seed(1)
+bag.boston= randomForest(medv~.,data=Boston , subset=train ,mtry=13,importance =TRUE)
+bag.boston
+
+yhat.bag = predict (bag.boston , newdata=Boston[-train ,])
+plot(yhat.bag , boston.test)
+abline (0,1)
+mean((yhat.bag -boston.test)^2)
+
+bag.boston= randomForest( medv~.,data=Boston , subset=train ,mtry=13,ntree=25)
+yhat.bag = predict (bag.boston , newdata=Boston[-train ,])
+mean((yhat.bag -boston.test)^2)
+
+set.seed(1)
+rf.boston = randomForest(medv~.,data=Boston , subset=train ,mtry=6, importance =TRUE)
+yhat.rf = predict(rf.boston ,newdata=Boston[-train ,])
+mean((yhat.rf-boston.test)^2)
+importance (rf.boston)
+varImpPlot (rf.boston)
+```
+### Chapter 8: Exercise 9
+This problem involves the “OJ” data set which is part of the “ISLR” package.
+  a.  Create a training set containing a random sample of 800 observations, and a test set containing the remaining observations.
+```{r}
+set.seed(1)
+train <- sample(1:nrow(OJ), 800)
+OJ.train <- OJ[train, ]
+OJ.test <- OJ[-train, ]
+```
+  b.  Fit a tree to the training data, with “Purchase” as the response and the other variables except for “Buy” as predictors. Use the “summary()” function to produce summary statistics about the tree, and describe the results obtained. What is the training error rate ? How many terminal nodes does the tree have ?
+```{r}
+tree.oj <- tree(Purchase ~ ., data = OJ.train)
+summary(tree.oj)
+```
+  c.  Type in the name of the tree object in order to get a detailed text output. Pick one of the terminal nodes, and interpret the information displayed.
+```{r}
+tree.oj
+```
+  d.  Create a plot of the tree, and interpret the results.
+```{r}
+plot(tree.oj)
+text(tree.oj, pretty = 0)
+```
+  e.  Predict the response on the test data, and produce a confusion matrix comparing the test labels to the predicted test labels. What is the test error rate ?
+```{r}
+tree.pred <- predict(tree.oj, OJ.test, type = "class")
+table(tree.pred, OJ.test$Purchase)
+```
+  f.  Apply the “cv.tree()” function to the training set in order to determine the optimal size tree.
+```{r}
+cv.oj <- cv.tree(tree.oj, FUN = prune.misclass)
+cv.oj
+```  
+  g.  Produce a plot with tree size on the x-axis and cross-validated classification error rate on the y-axis.
+```{r}
+plot(cv.oj$size, cv.oj$dev, type = "b", xlab = "Tree size", ylab = "Deviance")
+``` 
+  h.  Which tree size corresponds to the lowest cross-validated classification error rate?
+    We may see that the 2-node tree is the smallest tree with the lowest classification error rate.
+  i.  Produce a pruned tree corresponding to the optimal tree size obtained using cross-validation. If cross-validation does not lead to selection of a pruned tree, then create a pruned tree with five terminal nodes.
+```{r}
+prune.oj <- prune.misclass(tree.oj, best = 2)
+plot(prune.oj)
+text(prune.oj, pretty = 0)
+```
+  j.  Compare the training error rates between the pruned and unpruned trees. Which is higher ?
+```{r}
+summary(tree.oj)
+summary(prune.oj)
+```
+The misclassification error rate is slightly higher for the pruned tree (0.1825 vs 0.165).
+
+  k.  Compare the test error rates between the pruned and unpruned trees. Which is higher?
+```{r}
+prune.pred <- predict(prune.oj, OJ.test, type = "class")
+table(prune.pred, OJ.test$Purchase)
+```
+
+### Chapter 8: Exercise 11
+  a.  Create a training set consisting of the first 1000 observations, and a test set consisting of the remaining observations.
+```{r}
+set.seed(1)
+train <- 1:1000
+Caravan$Purchase <- ifelse(Caravan$Purchase == "Yes", 1, 0)
+Caravan.train <- Caravan[train, ]
+Caravan.test <- Caravan[-train, ]
+```
+  b. Fit a boosting model to the training set with “Purchase” as the response and the other variables as predictors. Use 1000 trees, and a shrinkage value of 0.01. Which predictors appear to be most important ?
+
+  c.  Use the boosting model to predict the response on the test data. Predict that a person will make a purchase if the estimated probability of purchase is greater than 20%. Form a confusion matrix. What fraction of the people predicted to make a purchase do in fact make one ? How does this compare with the results obtained from applying KNN or logistic regression to this data set ?
+
+
+### Chappter 10: Lab 2
+```{r}
+set.seed(2)
+x=matrix(rnorm (50*2), ncol=2)
+x[1:25,1]=x[1:25,1]+3
+x[1:25,2]=x[1:25,2]-4
+km.out=kmeans (x,2, nstart =20)
+km.out$cluster
+plot(x, col=(km.out$cluster +1), main="K-Means Clustering Results with K=2", xlab="", ylab="", pch=20, cex=2)
+
+set.seed(4)
+km.out=kmeans (x,3, nstart =20)
+km.out
+
+plot(x, col=(km.out$cluster +1), main="K-Means Clustering Results with K=3", xlab="", ylab="", pch=20, cex=2)
+set.seed(3)
+km.out=kmeans (x,3, nstart =1)
+km.out$tot.withinss
+km.out=kmeans (x,3, nstart =20)
+km.out$tot.withinss
+
+hc.complete = hclust(dist(x), method="complete")
+hc.average =hclust(dist(x), method ="average")
+hc.single=hclust(dist(x), method ="single")
+
+par(mfrow=c(1,3))
+plot(hc.complete ,main="Complete Linkage ", xlab="", sub="",cex=.9)
+plot(hc.average , main="Average Linkage", xlab="", sub="",cex=.9)
+plot(hc.single , main="Single Linkage ", xlab="", sub="",cex=.9)
+
+cutree(hc.complete , 2)
+cutree(hc.average , 2)
+cutree(hc.single , 2)
+cutree(hc.single , 4)
+xsc=scale(x)
+plot(hclust(dist(xsc), method ="complete"), main=" Hierarchical Clustering with Scaled Features")
+x=matrix(rnorm (30*3), ncol=3)
+dd=as.dist(1-cor(t(x)))
+plot(hclust(dd, method ="complete"), main=" Complete Linkage with Correlation -Based Distance ", xlab="", sub ="")
+```
+
+### Chapter 10: Exercise 2
+Suppose that we have four observations, for which we compute a
+dissimilarity matrix, given by *graph not shown*.
+
+For instance, the dissimilarity between the first and second observations is 0.3, and the dissimilarity between the second and fourth
+observations is 0.8.
+
+  a.  On the basis of this dissimilarity matrix, sketch the dendrogram that results from hierarchically clustering these four observations using complete linkage. Be sure to indicate on the plot the height at which each fusion occurs, as well as the observations corresponding to each leaf in the dendrogram.
+
+```{r}
+d = as.dist(matrix(c(0, 0.3, 0.4, 0.7, 
+                     0.3, 0, 0.5, 0.8,
+                     0.4, 0.5, 0.0, 0.45,
+                     0.7, 0.8, 0.45, 0.0), nrow = 4))
+plot(hclust(d, method = "complete"))
+```
+  b.  Repeat (a), this time using simple linkage clustering.
+```{r}
+plot(hclust(d, method = "single"))
+```
+  c.  Suppose that we cut the dendrogram obtained in (a) such that two clusters result. Which observations are in each cluster ?
+    In this case, we have clusters (1,2) and (3,4).
+  d.  Suppose that we cut the dendrogram obtained in (b) such that two clusters result. Which observations are in each cluster ?
+    In this case, we have clusters ((1,2),3) and (4).
+  e.  It is mentioned in the chapter that at each fusion in the dendrogram, the position of the two clusters being fused can be swapped without changing the meaning of the dendrogram. Draw a dendrogram that is equivalent to the dendrogram in (a), for which two or more of the leaves are repositioned, but for which the meaning of the dendrogram is the same.
+```{r}
+plot(hclust(d, method = "complete"), labels = c(2,1,4,3))
+```
+### Chapter 10: Exercise 9
+Consider the “USArrests” data. We will now perform hierarchical clustering on the states.
+  a.  Using hierarchical clustering with complete linkage and Euclidean distance, cluster the states.
+```{r}
+set.seed(2)
+hc.complete <- hclust(dist(USArrests), method = "complete")
+plot(hc.complete)
+```
+  b.  Cut the dendrogram at a height that results in three distinct clusters. Which states belong to which clusters?
+```{r}
+cutree(hc.complete, 3)
+```
+  c.  Hierachically cluster the states using complete linkage and Euclidean distance, after scaling the variables to have standard deviation one.
+```{r}
+sd.data <- scale(USArrests)
+hc.complete.sd <- hclust(dist(sd.data), method = "complete")
+plot(hc.complete.sd)
+```
+  d.  What effect does scaling the variables have on the hierarchical clustering obtained ? In your opinion, should the variables be scaled before the inter-observation dissimilarities are computed ? Provide a justification for your answer.
+```{r}
+cutree(hc.complete.sd, 3)
+table(cutree(hc.complete, 3), cutree(hc.complete.sd, 3))
+```
+### Chapter 10: Exercise 11
+On the book website, there is a gene expression data set that consists of 40 tissue samples with measurements on 1000 genes. The first 20 samples are from healthy patients, while the second 20 are from a diseased group.
+  a.  Load the data using “read.csv()”. You will need to select “header = F”.
+```{r,eval=FALSE}
+genes <- read.csv("Ch10Ex11.csv", header = FALSE)
+```

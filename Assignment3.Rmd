@@ -1,0 +1,350 @@
+---
+title: "Assignment3"
+author: "Liam McCallum"
+date: "3/20/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+##1.1
+a. The Sample space for the experiment is 16 
+b. {HHHHH}, {HHHHT}
+c. 11
+d. 5
+e. 3
+f. Yes, becasue they cannot both be true
+g. No because they can both be true
+
+##1.2
+a. 0.2
+b. 0.7
+c. The expected number of young is 0.95 cats 
+d. (1x0.3)+(4x0.15)+(9x0.05) = 1.35
+e. Most likely it has a higher expected mean and a higher degree of variance because of the 4 value that is included.
+f. 
+```{r}
+X <- sample(c(rep(0,1,2,3),rep(30,50,15,5)),1000000,replace=TRUE)
+mean(X)
+var(X)
+```
+g.
+```{r}
+Y <- sample(c(rep(0,1,2,3,4),rep(20,50,15,10,5)),1000000,replace=TRUE)
+mean(Y)
+var(Y)
+```
+
+##1.3
+The expected value is 1 and the variance is 0 since it cannot be any other number besides 1.
+
+##1.4
+a. Yes, since they cannot both occur at the same time
+b. The probability that X > 3 is 0.0 since the probability that X <= 3 is 1
+c. The probability that X > 2 is greater than the probability that X > 3, because the probability that it is greater than 2 is 0.05, but the probability that it is greater than 3 is 0, acccording to the graph.
+
+##1.5
+a. 0.2
+b. 0.3
+c. 0, not mutually exclusive
+
+##1.6
+If a and b can occur simultaneously, then the probability that both a and b occur is P(a) + p(b)
+
+##1.7
+a. 0.5*0.5 = 0.25
+b. 0.5^n
+c. 1-0.5^n
+
+##1.8
+a. P(A U C)|P(B = 0)
+b. P(A)|P(B U C = 0)
+c. Region A since it yields the hieghest result of success
+
+##1.9
+a. Z = (X - M)/ó = (X - 26.47413)/93.34443
+b. Z(2) + z(3) = 1.85 + 2.9 = 4.758
+
+##1.10
+P(0) = 0.041
+P(1) = 0.166
+P(2) = 0.375
+P(3) = 0.416
+
+##1.11
+a. 
+
+##2.1
+a. If the crashes are evenly distributed, I would expect each roomate to crash on average 2.6 times
+```{r}
+numCrashes <- 10
+numRoomates <- 5
+one_crash <- Vectorize(function(x){
+  return(dbinom(x,numCrashes,prob = x/numCrashes))
+})
+one_crash(numRoomates)
+```
+b. 3 of the crashes seems way more likely given the distribution
+c. 8 of the crashes seems horrible given the distribution, thats a whole 307 times greater than the distribution
+
+##2.2
+
+##2.3
+```{r, eval = FALSE}
+current_floor <- 9
+time <- 10;
+elevatorFloor <- Vectorize(function(x=1){
+  x <- as.numeric(sample(1:10, 1, replace = TRUE))
+  return(x)
+})
+elevatorTime <- Vectorize(function(x=1){
+  num <- ((current_floor - elevatorFloor()) * time)
+  return(num)
+})
+
+elevatorTime()
+```
+
+##2.4
+a.
+```{r, eval=FALSE}
+experiment <- Vectorize(function(x=1){
+  n01 <- 0
+  n02 <- 0
+  maxRuns <- 100000
+  while(n01 < 40 & n02 < 40 & maxRuns > 0){
+    maxRuns <- maxRuns - 1
+    coin <- sample(c("H","T"),1)
+    if(coin == "H"){
+      n01 <- n01 + 1
+      } else {
+      n02 <- n02 + 1
+      }
+  }
+  return(min(n01,n02))
+})
+sample.data <- experiment(1:1000)
+mean(sample.data)
+var(sample.data)
+```
+The mean will be 32.708 when the other class hits 40 and the variance is 23.23
+
+b.
+```{r, eval=FALSE}
+experiment <- Vectorize(function(x=1){
+  n01 <- 0
+  n02 <- 0
+  maxRuns <- 100000
+  while(n01 < 40 & n02 < 40 & maxRuns > 0){
+    maxRuns <- maxRuns - 1
+    coin <- sample(c("HA","HB","TA","TB"),1, replace = FALSE)
+    if(coin == "HA" & n01 > n02){
+      n01 <- n01 + 1
+    } else if(coin == "HA" & n02 > n01){
+      n02 <- n02 + 1
+    } else if(coin == "HB" & n01 > n02){
+      n02 <- n02 + 1
+    } else if(coin == "HB" & n02 > n01){
+      n01 <- n01 + 1
+    } else if(coin == "TA" & n01 > n02){
+      n01 <- n01 + 1
+    } else if(coin == "TA" & n02 > n01){
+      n02 <- n02 + 1
+    } else if(coin == "TB" & n01 > n02){
+      n02 <- n02 + 1
+    } else if(coin == "TB" & n02 > n01){
+      n01 <- n01 + 1
+    }
+  }
+  return(min(n01,n02))
+})
+sample.data <- experiment(1:10)
+mean(sample.data)
+var(sample.data)
+```
+##2.5
+```{r,eval=FALSE}
+N = c("Unmarked",1000, replace = FALSE)
+s1 = 50
+s2 = 50
+experiment2 <- Vectorize(function(x=1){
+  while(s1 > 1)
+  {
+    s1 <- s1 - 1
+    N[sample(1:1000)] <- "Marked"
+  }
+  while(s2 > 1)
+  {
+    s2 <- s2 - 1
+    N[sample(1:1000)] <- "Marked"
+  }
+  return(length(N[which("Marked")]))
+})
+experiment(1:100)
+```
+
+##2.6
+```{r,eval=FALSE}
+money = 1000
+game <- Vectorize(function(x=1){
+  if(money%/%3 == 0)
+  {
+    x <- sample(1:100)
+    if(x == range(1:5))
+    {
+      money <- money + 1
+    } else {
+      money <- money - 1
+    }
+  }
+  else
+  {
+    x <- sample(1:100)
+    y <- sample(1:100)
+    if(x == range(1:30) & y == range(1:30))
+    {
+      money <- money + 1
+    }else if(x == range(1:30) & y != range(1:30)) {
+      money <- money
+    }else if(x != range(1:30) & y == range(1:30)){
+      money <- money
+    }else{
+      money <- money - 2
+    }
+  }
+})
+game(1:1000)
+```
+a. In Game A, you would expect to lose money since it is not an even split of probability, in 100 attempts, you would expect to $10
+b. In game B, you fluxuate around 998, but ultimately lose money
+c. Sine both games you lose on average, I would expect by switching between the two randomly would net a loss in money 
+
+##2.7
+a.
+```{r}
+tank <- Vectorize(function(x){
+  y <- sample(1:x,20,replace = FALSE)
+  return(max(y))
+})
+N <- 150
+
+x <- seq(150,1000, by=50)
+y <- tank(x)
+plot(x,y)
+```
+b. 142
+c. 148 184 232 282 343 367 440 491 538 582 646 690 737 778 837 880 888 988
+
+## 2.8
+```{r}
+darts <- c(100,1000,10000,100000)
+X <- seq(0,3,length.out = 0.2)
+f <- Vectorize(function(x){
+  return(exp(-x^2))
+})
+Y <- f(X)
+plot(X,Y,type='l',lwd=4)
+XX <- c(X,rev(X))
+YY <- c(Y,rep(0,length(X)))
+polygon(XX,YY,col='red')
+
+xmin <- 0
+xmax <- 1
+ymin <- 0
+ymax <- 0.3
+number_of_darts <- darts
+X <- runif(number_of_darts,min=xmin,max=xmax)
+Y <- runif(number_of_darts,min=ymin,max=ymax)
+image_area <- (xmax-xmin)*(ymax-ymin)
+image_area
+
+darts_in_region <- length(which(Y <= f(X)))
+darts_in_region/number_of_darts
+darts_in_region/number_of_darts * image_area
+```
+
+##2.9
+
+##2.10
+```{r,eval=FALSE}
+df <- data("morley")
+X <- morley$Speed
+mu <- mean(X)
+sigma <- sd(X)
+
+x <- seq(from=69,to=100,by=0.5)
+y <- dnorm(x,mean=mu,sd=sigma)
+sample_size <- length(X)
+
+one_mean <- Vectorize(function(x=1) {
+  return(mean(sample(X,sample_size,replace=TRUE)))
+})
+sample_means <- one_mean(1:sample_size)
+meanmu <- mean(sample_means)
+meansigma <- sd(sample_means)
+xmean <- seq(from=78,to=83,by=0.01)
+ymean <- dnorm(xmean,mean=meanmu,sd=meansigma)
+
+interval90 <- qnorm(c(.05,.95),mean=meanmu,sd=meansigma)
+interval90
+```
+##2.11
+```{r,eval=FALSE}
+df <- data("LakeHuron")
+X <- LakeHuron
+mu <- mean(X)
+sigma <- sd(X)
+
+x <- seq(from=69,to=100,by=0.5)
+y <- dnorm(x,mean=mu,sd=sigma)
+sample_size <- length(X)
+
+one_mean <- Vectorize(function(x=1) {
+  return(mean(sample(X,sample_size,replace=TRUE)))
+})
+sample_means <- one_mean(1:sample_size)
+meanmu <- mean(sample_means)
+meansigma <- sd(sample_means)
+xmean <- seq(from=78,to=83,by=0.01)
+ymean <- dnorm(xmean,mean=meanmu,sd=meansigma)
+
+interval90 <- qnorm(c(.05,.95),mean=meanmu,sd=meansigma)
+interval90
+
+```
+
+##3.1
+```{r}
+data("quakes")
+Y <- quakes$stations
+X <- sample(quakes$stations,100)
+barplot(Y)
+barplot(X)
+```
+They seem very similar, which leads me to believe that the sampling is random enough to get a fair distrbution.
+
+##3.2
+```{r}
+X <- seq(from=-3,to=3,by=0.01)
+Y <- pnorm(X)
+plot(X,Y)
+y <- runif(1)
+set.seed(42)
+plot(X,Y)
+abline(h=y,col='red')
+location <- which.min(abs(Y-y))
+the_draw <- X[location]
+plot(X,Y)
+abline(h=y,col='red')
+abline(v=the_draw,col='blue')
+set.seed(42)
+y <- runif(1000)
+find_X <- function(y) {
+location <- which.min(abs(Y-y))
+  return(X[location])
+}
+find_X <- Vectorize(find_X)
+draws <- find_X(y)
+hist(draws,breaks=40)
+```

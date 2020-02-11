@@ -1,0 +1,128 @@
+---
+title: "Project1"
+author: "Liam McCallum"
+date: "4/12/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(tidyverse)
+library(tree)
+library(class)
+library(lubridate)
+library(randomForest)
+```
+
+## R Markdown
+
+```{r}
+mydata <- read.csv("/Users/McCallum_Liam/Desktop/Schoolwork/Math/Math331/Project1/NyboDataSet.csv", 1)
+summary(mydata)
+mydata$TimeMil <- NULL
+fly <- mydata[mydata$Event == "200Fly",]
+IM <- mydata[mydata$Event == "200IM",]
+Season1 <- subset(mydata, as.Date(mydata$Date) < "2018/3/24")
+Season2 <- subset(mydata, as.Date(mydata$Date) > "2018/3/24")
+mydata$Season <- ifelse(as.Date(mydata$Date) < "2018/3/24", "Season 1", "Season 2")
+
+ggplot(mydata,aes(x = as.Date(mydata$Date),mydata$TimeSec)) +
+  geom_jitter(aes(color=mydata$Season)) +
+  ggtitle("Times By Season") +
+  ylab("Times in Sec") +
+  xlab("Date") +
+  theme(legend.title = element_blank())
+  
+t.test(Season1$TimeSec,Season2$TimeSec)
+
+mydata$numericDate <- as.numeric(as.Date(mydata$Date))
+tree.data <- tree(TimeSec ~ numericDate,data = mydata)
+
+plot(tree.data)
+text(tree.data, pretty=0)
+
+yhat <- predict(tree.data)
+plot(yhat,mydata$TimeSec)
+abline(a=0,b=1,col="red")
+
+MSE <- function(predicted,actual) {
+  sum((predicted-actual)^2)
+}
+MSE(yhat,mydata$TimeSec)
+
+forestData <- randomForest(TimeSec ~ numericDate,data = mydata)
+
+yhat2 <- predict(forestData)
+plot(yhat2,mydata$TimeSec)
+abline(a=0,b=1,col="red")
+MSE(yhat2,mydata$TimeSec)
+```
+
+Predictive model for times for next year in both events
+
+Let's try a linear model
+```{r}
+summary(lm(TimeSec~Event,data=mydata))
+```
+This doesn't look terrible. But some improvements could be made. Let's try a tree
+
+```{r}
+mymodel <- tree(Date ~TimeSec+Event,data=mydata)
+summary(mymodel)
+plot(mymodel)
+text(mymodel,pretty=0)
+```
+This is nice but since there are not any indiciations of times per event, let's try that instead.
+
+```{r}
+mymodel <- tree(Date ~ TimeSec, data=fly)
+summary(mymodel)
+plot(mymodel)
+text(mymodel,pretty=0)
+
+mymodel <- tree(Date ~ TimeSec, data=IM)
+summary(mymodel)
+plot(mymodel)
+text(mymodel,pretty=0)
+
+```
+These are very nice, even if there aren't too many terminal nodes
+
+Let's try a random forest
+
+```{r}
+mymodel <- randomForest(Date ~ TimeSec + Event, data=mydata,mtry=2)
+varImpPlot(mymodel)
+```
+This looks pretty nice. It shows us which variable is more important. Regardless of event, the time is a better variable. We may be able to predict it too.
+```{r}
+yhat <- predict(mymodel)
+table(yhat)
+```
+
+This looks very nice. Age the dates and we have ourselves some nice dates our subject will swim his events. What if we do the times now.
+
+```{r}
+mymodel <- randomForest(TimeSec ~ Date+Event, data=mydata,mtry=2)
+varImpPlot(mymodel)
+#we can tell the Date plays a big factor, let's predict now.
+yhat <- predict(mymodel)
+ggplot(mydata) + 
+  geom_point(aes(x=yhat,y=TimeSec,color=Season)) +
+  scale_y_reverse() + scale_x_reverse() + 
+  xlab("Predicted Times") + 
+  ylab("Actual Times") + 
+  ggtitle("Predicted Times for AJ's events")
+```
+We have our predictions. Now we will have to see if he has similar times next year.
+
+Our second question:
+Which event did he improve the most over the last two seasons?
+```{r}
+summary(lm(TimeSec~Date,data=fly))
+summary(lm(TimeSec~Date,data=IM))
+```
+In our two linear models, it's very close, but it looks like IM had the better outcome compared to fly. The IM R-squared is .9989 compared to fly which is .9986.
+
+
